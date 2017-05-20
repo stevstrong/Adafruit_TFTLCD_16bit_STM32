@@ -11,9 +11,10 @@
 #include "hx8347g.h"
 #include "hx8357x.h"
 
+#ifndef USE_FSCM
 gpio_reg_map * cntrlRegs;
 gpio_reg_map * dataRegs;
-
+#endif
 /*****************************************************************************/
 // Constructor for shield (fixed LCD control lines)
 /*****************************************************************************/
@@ -69,6 +70,9 @@ void Adafruit_TFTLCD_16bit_STM32::begin(uint16_t id)
 /*****************************************************************************/
 void Adafruit_TFTLCD_16bit_STM32::reset(void)
 {
+#ifdef USE_FSCM
+	fsmc_lcd_init();
+#else
 	cntrlRegs = TFT_CNTRL_PORT->regs;
 	dataRegs = TFT_DATA_PORT->regs;
 	//Set control lines as output
@@ -96,6 +100,7 @@ void Adafruit_TFTLCD_16bit_STM32::reset(void)
 */
 	//set up data port to write mode.
 	setWriteDir();
+#endif // USE_FSCM
 
 	// toggle RST low to reset
 	if (TFT_RST_PIN > 0) { // don't use PA0 as reset !!!
@@ -134,19 +139,20 @@ void Adafruit_TFTLCD_16bit_STM32::flood(uint16_t color, uint32_t len)
 {
   CS_ACTIVE_CD_COMMAND;
   if (driver == ID_9341) {
-    write8(ILI9341_MEMORYWRITE);
+    writeCmd(ILI9341_MEMORYWRITE);
   } else if (driver == ID_932X) {
-    write8(ILI932X_RW_GRAM);
+    writeCmd(ILI932X_RW_GRAM);
   } else if (driver == ID_HX8357D) {
-    write8(HX8357_RAMWR);
+    writeCmd(HX8357_RAMWR);
   } else {
-    write8(0x22); // Write data to GRAM
+    writeCmd(0x22); // Write data to GRAM
   }
 
   // Write first pixel normally
   CD_DATA;
-  write16_(color);
-#if 1
+#ifndef USE_FSCM
+  writeData_(color);
+#endif
   uint16_t blocks = len>>3;
   // optimized write in group of 8 consecutive strobes
   while ( (blocks--) ) {
@@ -157,10 +163,6 @@ void Adafruit_TFTLCD_16bit_STM32::flood(uint16_t color, uint32_t len)
   while ( (len--) ) {
 	  WR_STROBE;
   }
-#else
-  while ( (len--) )
-	  WR_STROBE;
-#endif
   CS_IDLE;
 }
 
@@ -289,7 +291,7 @@ void Adafruit_TFTLCD_16bit_STM32::drawPixel(int16_t x, int16_t y, uint16_t color
     // Only upper-left is set -- bottom-right is full screen default
     writeRegisterPair(HX8347G_COLADDRSTART_HI, HX8347G_COLADDRSTART_LO, x);
     writeRegisterPair(HX8347G_ROWADDRSTART_HI, HX8347G_ROWADDRSTART_LO, y);
-    writeCommand(0x22); CD_DATA; write16(color); CS_IDLE;
+    writeCommand(0x22); CD_DATA; writeData(color); CS_IDLE;
 
   } else  if(driver == ID_932X) {
 
@@ -326,20 +328,17 @@ void Adafruit_TFTLCD_16bit_STM32::drawBitmap(int16_t x, int16_t y, int16_t w, in
 /*****************************************************************************/
 void Adafruit_TFTLCD_16bit_STM32::pushColors(uint16_t *data, int16_t len, boolean first)
 {
-  //uint16_t color;
-  CS_ACTIVE;
+  CS_ACTIVE_CD_COMMAND;
   if(first == true) { // Issue GRAM write command only on first call
-    CD_COMMAND;
     if ((driver == ID_9341) || (driver == ID_HX8357D)){
-       write8(0x2C);
+       writeCmd(0x2C);
      }  else {
-       write8(0x22);
+       writeCmd(0x22);
      }
   }
   CD_DATA;
   while(len--) {
-    //color = *data++; write16(color);
-    write16(*data++);
+    writeData(*data++);
   }
   CS_IDLE;
 }
@@ -568,7 +567,7 @@ void writeRegister8(uint16_t a, uint8_t d)
 {
   writeCommand(a);
   CD_DATA;
-  write8(d);
+  writeData(d&0x00FF);
   CS_IDLE;
 }
 
@@ -577,7 +576,7 @@ void writeRegister16(uint16_t a, uint16_t d)
 {
   writeCommand(a);
   CD_DATA;
-  write16(d);
+  writeData(d);
   CS_IDLE;
 }
 
@@ -604,9 +603,9 @@ void writeRegister32(uint16_t r, uint32_t d)
 {
   writeCommand(r);
   CD_DATA;
-  write8(d >> 24);
-  write8(d >> 16);
-  write8(d >> 8);
-  write8(d);
+  writeData((d >> 24));
+  writeData((d >> 16)&0x00FF);
+  writeData((d >> 8)&0x00FF);
+  writeData(d&0x00FF);
   CS_IDLE;
 }

@@ -36,7 +36,6 @@ static const uint8_t HX8357D_regValues[] PROGMEM = {
 void hx8357x_begin(void)
 {
     uint8_t i = 0;
-    //CS_ACTIVE;
      while(i < sizeof(HX8357D_regValues)) {
       uint8_t r = pgm_read_byte(&HX8357D_regValues[i++]);
       uint8_t len = pgm_read_byte(&HX8357D_regValues[i++]);
@@ -46,12 +45,11 @@ void hx8357x_begin(void)
 		//Serial.print("Register $"); Serial.print(r, HEX);
 		//Serial.print(" datalen "); Serial.println(len);
 
-		CS_ACTIVE_CD_COMMAND;
-		write16(0x00FF&r);
+		writeCommand(r);
 		CD_DATA;
 		for (uint8_t d=0; d<len; d++) {
 		  uint8_t x = pgm_read_byte(&HX8357D_regValues[i++]);
-		  write16(0x00FF&x);
+		  writeData(0x00FF&x);
 		}
 		CS_IDLE;
 

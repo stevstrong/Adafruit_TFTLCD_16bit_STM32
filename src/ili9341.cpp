@@ -72,7 +72,7 @@ static void WriteCmdParamN(uint16_t cmd, int8_t N, const uint8_t * block)
 		uint8_t u8 = *block++;
 		CD_DATA;
 		//Serial.print(u8,HEX);
-		write16(0x00FF&u8);
+		writeData(0x00FF&u8);
 	}
     CS_IDLE;
 	//Serial.write('\n');

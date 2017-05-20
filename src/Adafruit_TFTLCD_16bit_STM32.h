@@ -12,7 +12,7 @@
 
 #include <Adafruit_GFX.h>
 
-#include <libmaple/gpio.h>
+#define USE_FSCM 1 // use FSCM interface instead raw GPIO access
 
 //#define USE_MAPLE_MINI_PINOUT // for use with maple mini
 
@@ -49,6 +49,32 @@
 /*****************************************************************************/
 // Define pins and Output Data Registers
 /*****************************************************************************/
+
+#ifdef USE_FSCM
+
+// use FSCM peripheral
+#include <libmaple/fsmc.h>
+
+ #define CD_COMMAND
+ #define CD_DATA
+ #define CS_ACTIVE
+ #define CS_IDLE
+ #define CS_ACTIVE_CD_COMMAND
+
+#define lcdCommand (*fsmcCommand)
+#define lcdData    (*fsmcData)
+
+ // set pins to output the 8 bit value
+ #define writeCmd(d)    { lcdCommand = d; } //(d&0x00FF); }
+ #define writeData(d)	{ lcdData = d; }
+
+ #define WR_STROBE   writeData(color)
+
+#else
+
+// use normal GPIO access
+#include <libmaple/gpio.h>
+
 // Port data bits D0..D16:
 #if defined (__STM32F1__)
   #define TFT_DATA_PORT	GPIOD
@@ -65,7 +91,6 @@
 #endif
 #define TFT_CNTRL_IO_PORT	'C'
 //#define TFT_RD_BIT		5
-#define TFT_RST_BIT		6
 #define TFT_RS_BIT		7
 #define TFT_WR_BIT		8
 #define TFT_CS_BIT		9
@@ -76,7 +101,6 @@
 #define TFT_WR_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_WR_BIT)
 #define TFT_RS_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_RS_BIT)
 #define TFT_CS_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_CS_BIT)
-#define TFT_RST_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_RST_BIT) //PB10
 
 	#define RST_ACTIVE	digitalWrite(TFT_RST_PIN, LOW)
 	#define RST_IDLE	digitalWrite(TFT_RST_PIN, HIGH)
@@ -117,9 +141,14 @@ extern gpio_reg_map * dataRegs;
 #define setWriteDir() { for (uint8 i = 0; i<16; i++) { pinMode(Port2Pin(TFT_DATA_IO_PORT,0)+i, OUTPUT); } }	// set the bits as output
 
 // set pins to output the 8 bit value
- #define write8(d)		{ dataRegs->ODR = d&0x00FF; WR_STROBE; }
- #define write16_(d)	{ dataRegs->ODR = d;}
- #define write16(d)		{ write16_(d); WR_STROBE; }
+ #define writeData_(d)	{ dataRegs->ODR = d;}
+ //#define writeCmd(d)	{ writeData_(d&0x00FF); WR_STROBE; }
+ #define writeCmd(d)	{ writeData_(d); WR_STROBE; }
+ #define writeData(d)	{ writeData_(d); WR_STROBE; }
+
+#endif // USE_FSCM
+
+#define TFT_RST_PIN		PC6
 
 /*****************************************************************************/
 
@@ -168,7 +197,7 @@ extern uint32_t readReg32(uint8_t r);
 static inline void writeCommand(uint16_t c) __attribute__((always_inline));
 static inline void writeCommand(uint16_t c) {
 	CS_ACTIVE_CD_COMMAND;
-	write16(c);
+	writeCmd(c);
 }
 
 extern void writeRegister8(uint16_t a, uint8_t d);
