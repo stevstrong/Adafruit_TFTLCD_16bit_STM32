@@ -6,6 +6,9 @@
 
 /*
 Benchmark                Time (microseconds)
+---------------------------------------------
+Using GPIO
+---------------------------------------------
 Screen fill              104767
 Text                     10386
 Lines                    185635
@@ -18,7 +21,23 @@ Triangles (outline)      51741
 Triangles (filled)       112147
 Rounded rects (outline)  26409
 Rounded rects (filled)   295197
+---------------------------------------------
+Using FSMC:
+---------------------------------------------
+Screen fill              48091
+Text                     5683
+Lines                    83850
+Horiz/Vert Lines         4258
+Rectangles (outline)     2655
+Rectangles (filled)      117322
+Circles (filled)         39360
+Circles (outline)        35190
+Triangles (outline)      23373
+Triangles (filled)       50048
+Rounded rects (outline)  12160
+Rounded rects (filled)   134562
 Done!
+
 */
 
 #include "Adafruit_common.h"
