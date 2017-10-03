@@ -12,7 +12,7 @@
 
 #include <Adafruit_GFX.h>
 
-#define USE_FSCM 1 // use FSCM interface instead raw GPIO access
+//#define USE_FSMC 1 // use FSCM interface instead raw GPIO access
 
 //#define USE_MAPLE_MINI_PINOUT // for use with maple mini
 
@@ -38,10 +38,10 @@
 #define Color565 color565
 
 /*****************************************************************************/
-#define	BLACK   0x0000
-#define	BLUE    0x001F
-#define	RED     0xF800
-#define	GREEN   0x07E0
+#define BLACK   0x0000
+#define BLUE    0x001F
+#define RED     0xF800
+#define GREEN   0x07E0
 #define CYAN    0x07FF
 #define MAGENTA 0xF81F
 #define YELLOW  0xFFE0
@@ -50,9 +50,9 @@
 // Define pins and Output Data Registers
 /*****************************************************************************/
 
-#ifdef USE_FSCM
+#ifdef USE_FSMC
 
-// use FSCM peripheral
+// use USE_FSMC peripheral
 #include <libmaple/fsmc.h>
 
  #define CD_COMMAND
@@ -65,90 +65,84 @@
 #define lcdData    (*fsmcData)
 
  // set pins to output the 8 bit value
- #define writeCmd(d)    { lcdCommand = d; } //(d&0x00FF); }
- #define writeData(d)	{ lcdData = d; }
-
+ #define writeCmd(d)  { lcdCommand = d; }
+ #define writeData(d) { lcdData = d; }
+ 
  #define WR_STROBE   writeData(color)
 
 #else
 
-// use normal GPIO access
-#include <libmaple/gpio.h>
+  // use normal GPIO access
+  #include <libmaple/gpio.h>
 
-// Port data bits D0..D16:
-#if defined (__STM32F1__)
-  #define TFT_DATA_PORT	GPIOD
-#elif defined (__STM32F4__)
-  #define TFT_DATA_PORT	(&GPIOD)
-#endif
-#define TFT_DATA_IO_PORT	'D'
+  // Data port
+  #if defined (__STM32F1__)
+    #define TFT_DATA_PORT GPIOB
+  #elif defined (__STM32F4__)
+    #define TFT_DATA_PORT (&GPIOD)
+  #endif
 
-//Control pins |RD |WR |RS |CS |RST|
-#if defined (__STM32F1__)
-  #define TFT_CNTRL_PORT	GPIOC
-#elif defined (__STM32F4__)
-  #define TFT_CNTRL_PORT	(&GPIOC)
-#endif
-#define TFT_CNTRL_IO_PORT	'C'
-//#define TFT_RD_BIT		5
-#define TFT_RS_BIT		7
-#define TFT_WR_BIT		8
-#define TFT_CS_BIT		9
+  //Control port and pins |WR |RS |CS
+  // All of them must have common IO port!
+  #define TFT_WR_PIN        PA1
+  #define TFT_RS_PIN        PA2
+  #define TFT_CS_PIN        PA3
 
-#define Port2Pin(port, bit) ((port-'A')*16+bit)
+  #if defined (__STM32F1__)
+    #define TFT_CNTRL_PORT GPIOA // must be common to all control pins
+  #elif defined (__STM32F4__)
+    #define TFT_CNTRL_PORT GPIOC
+  #endif
 
-//#define TFT_RD_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_RD_BIT)
-#define TFT_WR_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_WR_BIT)
-#define TFT_RS_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_RS_BIT)
-#define TFT_CS_PIN		Port2Pin(TFT_CNTRL_IO_PORT, TFT_CS_BIT)
+  #define RST_ACTIVE    digitalWrite(TFT_RST_PIN, LOW)
+  #define RST_IDLE      digitalWrite(TFT_RST_PIN, HIGH)
+  // used TFT does not support RD operation
+  //#define RD_ACTIVE   digitalWrite(TFT_RD_PIN, LOW)
+  //#define RD_IDLE     digitalWrite(TFT_RD_PIN, HIGH)
 
-	#define RST_ACTIVE	digitalWrite(TFT_RST_PIN, LOW)
-	#define RST_IDLE	digitalWrite(TFT_RST_PIN, HIGH)
-#if 0 // used TFT does not support RD operation
-	#define RD_ACTIVE    digitalWrite(TFT_RD_PIN, LOW)
-	#define RD_IDLE      digitalWrite(TFT_RD_PIN, HIGH)
-#endif
-#if 0
-	// use old definition, standard bit toggling, low speed
-	#define WR_ACTIVE    digitalWrite(TFT_WR_PIN, LOW) //
-	#define WR_IDLE      digitalWrite(TFT_WR_PIN, HIGH) //
-	#define CD_COMMAND   digitalWrite(TFT_RS_PIN, LOW)
-	#define CD_DATA      digitalWrite(TFT_RS_PIN, HIGH)
-	#define CS_ACTIVE    digitalWrite(TFT_CS_PIN, LOW)
-	#define CS_IDLE      digitalWrite(TFT_CS_PIN, HIGH)
-	#define CS_ACTIVE_CD_COMMAND	{ CS_ACTIVE; CD_COMMAND; }
-#else
-	// use fast bit toggling, very fast speed!
-extern gpio_reg_map * cntrlRegs;
-	#define WR_ACTIVE				gpio_clear_dev_bit(TFT_CNTRL_PORT, TFT_WR_BIT) //digitalWrite(TFT_WR_PIN, LOW)//
-	#define WR_IDLE					digitalWrite(TFT_WR_PIN, HIGH)//gpio_set_dev_bit(TFT_CNTRL_PORT, TFT_WR_BIT) //
-	#define CD_COMMAND				gpio_clear_dev_bit(TFT_CNTRL_PORT, TFT_RS_BIT) //{ cntrlRegs->BSRRH = BIT(TFT_RS_BIT); } //
-	#define CD_DATA					gpio_set_dev_bit(TFT_CNTRL_PORT, TFT_RS_BIT) //{ cntrlRegs->BSRRH = BIT(TFT_RS_BIT); } //
-	#define CS_ACTIVE				gpio_clear_dev_bit(TFT_CNTRL_PORT, TFT_CS_BIT) //{ cntrlRegs->BSRRL = BIT(TFT_CS_BIT); } //
-	#define CS_IDLE					gpio_set_dev_bit(TFT_CNTRL_PORT, TFT_CS_BIT) //{ cntrlRegs->BSRRH = BIT(TFT_CS_BIT); } //
-	#define CS_ACTIVE_CD_COMMAND	{ cntrlRegs->BSRRH = BIT(TFT_CS_BIT)|BIT(TFT_RS_BIT); }
-#endif
+  extern volatile uint32_t *ctrl_port, *data_port;
+  extern uint16_t wr_bitmask, rs_bitmask, cs_bitmask;
 
-#define WR_STROBE { WR_ACTIVE; WR_IDLE; }
+  #if 0
+    // use old definition, standard bit toggling, low speed
+    #define WR_ACTIVE    digitalWrite(TFT_WR_PIN, LOW) //
+    #define WR_IDLE      digitalWrite(TFT_WR_PIN, HIGH) //
+    #define CD_COMMAND   digitalWrite(TFT_RS_PIN, LOW)
+    #define CD_DATA      digitalWrite(TFT_RS_PIN, HIGH)
+    #define CS_ACTIVE    digitalWrite(TFT_CS_PIN, LOW)
+    #define CS_IDLE      digitalWrite(TFT_CS_PIN, HIGH)
+    #define CS_ACTIVE_CD_COMMAND    { CS_ACTIVE; CD_COMMAND; }
+  #else
+    // use fast bit toggling, very fast speed!
+  //volatile uint32_t * const rd_port = portSetRegister(TFT_RD_PIN);
+    #define WR_ACTIVE               ( *ctrl_port = (uint32_t)wr_bitmask<<16 )
+    #define WR_IDLE                 ( *ctrl_port = (uint32_t)wr_bitmask )
+    #define CD_COMMAND              ( *ctrl_port = (uint32_t)rs_bitmask<<16 )
+    #define CD_DATA                 ( *ctrl_port = (uint32_t)rs_bitmask )
+    #define CS_ACTIVE               ( *ctrl_port = (uint32_t)cs_bitmask<<16 )
+    #define CS_IDLE                 ( *ctrl_port = (uint32_t)cs_bitmask )
+    #define CS_ACTIVE_CD_COMMAND    ( *ctrl_port = (uint32_t)(cs_bitmask+rs_bitmask)<<16 )
+  #endif
 
-extern gpio_reg_map * dataRegs;
+  #define WR_STROBE { WR_ACTIVE; WR_IDLE; }
 
-#if 0 // used TFT cannot be read
-  extern uint8_t read8_(void);
-  #define read8(x) ( x = read8_() )
-  #define setReadDir() { for (uint8 i = 0; i<16; i++) { pinMode(Port2Pin(TFT_DATA_IO_PORT,0)+i, OUTPUT); } }	// set the bits as input
-#endif // used TFT cannot be read
-#define setWriteDir() { for (uint8 i = 0; i<16; i++) { pinMode(Port2Pin(TFT_DATA_IO_PORT,0)+i, OUTPUT); } }	// set the bits as output
+  // set pins to output the 8 bit value
+  #define writeData_(d) { *data_port = d; }
+  //#define writeCmd(d) { writeData_(d&0x00FF); WR_STROBE; }
+  #define writeCmd(d)   { writeData_(d); WR_STROBE; }
+  #define writeData(d)  { writeData_(d); WR_STROBE; }
 
-// set pins to output the 8 bit value
- #define writeData_(d)	{ dataRegs->ODR = d;}
- //#define writeCmd(d)	{ writeData_(d&0x00FF); WR_STROBE; }
- #define writeCmd(d)	{ writeData_(d); WR_STROBE; }
- #define writeData(d)	{ writeData_(d); WR_STROBE; }
+  #if 0 // used TFT cannot be read
+    extern uint8_t read8_(void);
+    #define read8(x) ( x = read8_() )
+    #define setReadDir() { TFT_DATA_PORT->regs->CRL = 0x88888888; TFT_DATA_PORT->regs->CRH = 0x88888888; }  // set the bits as input
+  #endif // used TFT cannot be read
 
-#endif // USE_FSCM
+  #define setWriteDir() { TFT_DATA_PORT->regs->CRL = 0x44444444; TFT_DATA_PORT->regs->CRH = 0x44444444; }   // set the bits as output
 
-#define TFT_RST_PIN		PC6
+#endif // USE_FSMC
+
+#define TFT_RST_PIN     PC15
 
 /*****************************************************************************/
 
@@ -175,8 +169,9 @@ class Adafruit_TFTLCD_16bit_STM32 : public Adafruit_GFX {
        // These methods are public in order for BMP examples to work:
   void     setAddrWindow(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
   void     invertDisplay(boolean i),
-			pushColors(uint16_t *data, int16_t len, boolean first),
+            pushColors(uint16_t *data, int16_t len, boolean first),
            drawBitmap(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t * bitmap);
+  uint16_t color565(uint8_t r, uint8_t g, uint8_t b);
 #if 0 // used TFT cannot be read
   uint16_t readPixel(int16_t x, int16_t y),
            readID(void);
@@ -188,18 +183,12 @@ class Adafruit_TFTLCD_16bit_STM32 : public Adafruit_GFX {
   uint8_t  driver;
 };
 
-extern uint16_t color565(uint8_t r, uint8_t g, uint8_t b);
 #if 0 // used TFT cannot be read
 extern uint16_t readReg(uint8_t r);
 extern uint32_t readReg32(uint8_t r);
 #endif
 
-static inline void writeCommand(uint16_t c) __attribute__((always_inline));
-static inline void writeCommand(uint16_t c) {
-	CS_ACTIVE_CD_COMMAND;
-	writeCmd(c);
-}
-
+void inline writeCommand(uint16_t c) { CS_ACTIVE_CD_COMMAND; writeCmd(c); }
 extern void writeRegister8(uint16_t a, uint8_t d);
 extern void writeRegister16(uint16_t a, uint16_t d);
 //extern void writeRegister24(uint16_t a, uint32_t d);

@@ -346,7 +346,7 @@ unsigned long testTriangles() {
       cx    , cy - i, // peak
       cx - i, cy + i, // bottom left
       cx + i, cy + i, // bottom right
-      color565(0, 0, i));
+      tft.color565(0, 0, i));
   }
 
   return micros() - start;
@@ -362,10 +362,10 @@ unsigned long testFilledTriangles() {
   for(i=min(cx,cy); i>10; i-=5) {
     start = micros();
     tft.fillTriangle(cx, cy - i, cx - i, cy + i, cx + i, cy + i,
-      color565(0, i, i));
+      tft.color565(0, i, i));
     t += micros() - start;
     tft.drawTriangle(cx, cy - i, cx - i, cy + i, cx + i, cy + i,
-      color565(i, i, 0));
+      tft.color565(i, i, 0));
   }
 
   return t;
@@ -382,7 +382,7 @@ unsigned long testRoundRects() {
   start = micros();
   for(i=0; i<w; i+=6) {
     i2 = i / 2;
-    tft.drawRoundRect(cx-i2, cy-i2, i, i, i/8, color565(i, 0, 0));
+    tft.drawRoundRect(cx-i2, cy-i2, i, i, i/8, tft.color565(i, 0, 0));
   }
 
   return micros() - start;
@@ -398,7 +398,7 @@ unsigned long testFilledRoundRects() {
   start = micros();
   for(i=min(tft.width(), tft.height()); i>20; i-=6) {
     i2 = i / 2;
-    tft.fillRoundRect(cx-i2, cy-i2, i, i, i/8, color565(0, i, 0));
+    tft.fillRoundRect(cx-i2, cy-i2, i, i, i/8, tft.color565(0, i, 0));
   }
 
   return micros() - start;

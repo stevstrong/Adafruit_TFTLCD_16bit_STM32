@@ -12,8 +12,8 @@
 #include "hx8357x.h"
 
 #ifndef USE_FSCM
-gpio_reg_map * cntrlRegs;
-gpio_reg_map * dataRegs;
+volatile uint32_t *ctrl_port, *data_port;
+uint16_t wr_bitmask, rs_bitmask, cs_bitmask;
 #endif
 /*****************************************************************************/
 // Constructor for shield (fixed LCD control lines)
@@ -73,8 +73,11 @@ void Adafruit_TFTLCD_16bit_STM32::reset(void)
 #ifdef USE_FSCM
 	fsmc_lcd_init();
 #else
-	cntrlRegs = TFT_CNTRL_PORT->regs;
-	dataRegs = TFT_DATA_PORT->regs;
+	ctrl_port = &(TFT_CNTRL_PORT->regs->BSRR);
+	data_port = &(TFT_DATA_PORT->regs->ODR);
+	wr_bitmask = digitalPinToBitMask(TFT_WR_PIN);
+	rs_bitmask = digitalPinToBitMask(TFT_RS_PIN);
+	cs_bitmask = digitalPinToBitMask(TFT_CS_PIN);
 	//Set control lines as output
 	//cntrlRegs->CRL = (cntrlRegs->CRL & 0xFFFF0000) | 0x00003333;
 #if 0 // used TFT does not support RD operation
@@ -360,7 +363,7 @@ void Adafruit_TFTLCD_16bit_STM32::invertDisplay(boolean i)
 // color/bit:	R5	R4	R3	R2	R1 | G5	G4	G3		G2	G1	G0 | B5	B4	B3	B2	B1
 // 								R0=R5											B0=B5
 /*****************************************************************************/
-uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
+uint16_t Adafruit_TFTLCD_16bit_STM32::color565(uint8_t r, uint8_t g, uint8_t b)
 {
 	return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 	//return ((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F);
