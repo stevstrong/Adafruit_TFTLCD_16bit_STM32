@@ -70,7 +70,7 @@ void Adafruit_TFTLCD_16bit_STM32::begin(uint16_t id)
 /*****************************************************************************/
 void Adafruit_TFTLCD_16bit_STM32::reset(void)
 {
-#ifdef USE_FSCM
+#ifdef USE_FSMC
 	fsmc_lcd_init();
 #else
 	ctrl_port = &(TFT_CNTRL_PORT->regs->BSRR);
@@ -153,7 +153,7 @@ void Adafruit_TFTLCD_16bit_STM32::flood(uint16_t color, uint32_t len)
 
   // Write first pixel normally
   CD_DATA;
-#ifndef USE_FSCM
+#ifndef USE_FSMC
   writeData_(color);
 #endif
   uint16_t blocks = len>>3;
