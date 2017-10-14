@@ -6,13 +6,10 @@
 #ifndef _ADAFRUIT_TFTLCD_16BIT_STM32_H_
 #define _ADAFRUIT_TFTLCD_16BIT_STM32_H_
 
-    #define PROGMEM
-    #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
-    #define pgm_read_word(addr) (*(const unsigned short *)(addr))
 
-#include <Adafruit_GFX.h>
+#include <Adafruit_GFX_AS.h>
 
-//#define USE_FSMC 1 // use FSCM interface instead raw GPIO access
+#define USE_FSMC 1 // use FSCM interface instead raw GPIO access
 
 //#define USE_MAPLE_MINI_PINOUT // for use with maple mini
 
@@ -91,7 +88,7 @@
   #if defined (__STM32F1__)
     #define TFT_CNTRL_PORT GPIOA // must be common to all control pins
   #elif defined (__STM32F4__)
-    #define TFT_CNTRL_PORT GPIOC
+    #define TFT_CNTRL_PORT (&GPIOC)
   #endif
 
   #define RST_ACTIVE    digitalWrite(TFT_RST_PIN, LOW)

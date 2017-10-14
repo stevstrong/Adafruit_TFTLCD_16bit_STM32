@@ -37,8 +37,8 @@ void hx8357x_begin(void)
 {
     uint8_t i = 0;
      while(i < sizeof(HX8357D_regValues)) {
-      uint8_t r = pgm_read_byte(&HX8357D_regValues[i++]);
-      uint8_t len = pgm_read_byte(&HX8357D_regValues[i++]);
+      uint8_t r = HX8357D_regValues[i++];
+      uint8_t len = HX8357D_regValues[i++];
       if(r == TFTLCD_DELAY) {
 		delay(len);
       } else {
@@ -48,7 +48,7 @@ void hx8357x_begin(void)
 		writeCommand(r);
 		CD_DATA;
 		for (uint8_t d=0; d<len; d++) {
-		  uint8_t x = pgm_read_byte(&HX8357D_regValues[i++]);
+		  uint8_t x = HX8357D_regValues[i++];
 		  writeData(0x00FF&x);
 		}
 		CS_IDLE;

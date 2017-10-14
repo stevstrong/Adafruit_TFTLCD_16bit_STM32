@@ -82,8 +82,8 @@ void hx8347g_begin(void)
     uint8_t a, d, i = 0;
     CS_ACTIVE;
     while(i < sizeof(HX8347G_regValues)) {
-      a = pgm_read_byte(&HX8347G_regValues[i++]);
-      d = pgm_read_byte(&HX8347G_regValues[i++]);
+      a = HX8347G_regValues[i++];
+      d = HX8347G_regValues[i++];
       if(a == TFTLCD_DELAY) delay(d);
       else                  writeRegister8(a, d);
     }
