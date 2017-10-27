@@ -146,7 +146,7 @@
 #define swap(a, b) { int16_t t = a; a = b; b = t; }
 
 /*****************************************************************************/
-class Adafruit_TFTLCD_16bit_STM32 : public Adafruit_GFX_AS {
+class Adafruit_TFTLCD_16bit_STM32 : public Adafruit_GFX {
 
  public:
 
