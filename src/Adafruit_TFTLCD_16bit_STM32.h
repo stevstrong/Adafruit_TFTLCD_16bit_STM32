@@ -135,7 +135,7 @@
     #define setReadDir() { TFT_DATA_PORT->regs->CRL = 0x88888888; TFT_DATA_PORT->regs->CRH = 0x88888888; }  // set the bits as input
   #endif // used TFT cannot be read
 
-  #define setWriteDir() { TFT_DATA_PORT->regs->CRL = 0x44444444; TFT_DATA_PORT->regs->CRH = 0x44444444; }   // set the bits as output
+  #define setWriteDir() { TFT_DATA_PORT->regs->CRL = 0x33333333; TFT_DATA_PORT->regs->CRH = 0x33333333; }   // set the bits as output
 
 #endif // USE_FSMC
 
