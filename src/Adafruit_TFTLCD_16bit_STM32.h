@@ -9,7 +9,7 @@
 
 #include <Adafruit_GFX_AS.h>
 
-#define USE_FSMC 1 // use FSCM interface instead raw GPIO access
+//#define USE_FSMC 1 // use FSCM interface instead raw GPIO access
 
 //#define USE_MAPLE_MINI_PINOUT // for use with maple mini
 
