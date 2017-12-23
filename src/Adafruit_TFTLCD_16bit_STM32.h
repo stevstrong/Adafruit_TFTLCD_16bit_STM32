@@ -76,7 +76,7 @@
   #if defined (__STM32F1__)
     #define TFT_DATA_PORT GPIOB
   #elif defined (__STM32F4__)
-    #define TFT_DATA_PORT (&GPIOD)
+    #define TFT_DATA_PORT GPIOD
   #endif
 
   //Control port and pins |WR |RS |CS
@@ -88,7 +88,7 @@
   #if defined (__STM32F1__)
     #define TFT_CNTRL_PORT GPIOA // must be common to all control pins
   #elif defined (__STM32F4__)
-    #define TFT_CNTRL_PORT (&GPIOC)
+    #define TFT_CNTRL_PORT GPIOC
   #endif
 
   #define RST_ACTIVE    digitalWrite(TFT_RST_PIN, LOW)
@@ -99,7 +99,6 @@
 
   extern volatile uint32_t *ctrl_port, *data_port;
   extern uint16_t wr_bitmask, rs_bitmask, cs_bitmask;
-
   #if 0
     // use old definition, standard bit toggling, low speed
     #define WR_ACTIVE    digitalWrite(TFT_WR_PIN, LOW) //
@@ -192,6 +191,5 @@ extern void writeRegister16(uint16_t a, uint16_t d);
 extern void writeRegister32(uint16_t a, uint32_t d);
 //extern void writeRegister32(uint16_t a, uint16_t d1, uint16_t d2);
 extern void writeRegisterPair(uint16_t aH, uint16_t aL, uint16_t d);
-
 
 #endif

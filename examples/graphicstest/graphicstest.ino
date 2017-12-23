@@ -1,9 +1,5 @@
 #include <Arduino.h>
 
-// IMPORTANT: Adafruit_TFTLCD LIBRARY MUST BE SPECIFICALLY
-// CONFIGURED FOR EITHER THE TFT SHIELD OR THE BREAKOUT BOARD.
-// SEE RELEVANT COMMENTS IN Adafruit_TFTLCD.h FOR SETUP.
-
 #include <Adafruit_TFTLCD_16bit_STM32.h> // Hardware-specific library
 
 
@@ -11,9 +7,8 @@ Adafruit_TFTLCD_16bit_STM32 tft;
 
 void setup(void) {
   Serial.begin(115200);
-  //while ( !Serial.isConnected() ) ;
-
-  delay(3000);
+  while ( !Serial ) ;
+  delay(1000);
 
   Serial.println(F("TFT LCD test"));
 

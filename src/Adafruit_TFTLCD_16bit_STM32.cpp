@@ -106,7 +106,7 @@ void Adafruit_TFTLCD_16bit_STM32::reset(void)
 #endif // USE_FSCM
 
 	// toggle RST low to reset
-	if (TFT_RST_PIN > 0) { // don't use PA0 as reset !!!
+	if (TFT_RST_PIN >= 0) { // don't use PA0 as reset !!!
 		pinMode(TFT_RST_PIN, OUTPUT);
 		digitalWrite(TFT_RST_PIN, HIGH);
 		delay(100);
