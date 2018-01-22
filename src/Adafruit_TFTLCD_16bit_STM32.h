@@ -125,7 +125,7 @@
   // set pins to output the 8 bit value
   #define writeData_(d) { *data_port = d; }
   //#define writeCmd(d) { writeData_(d&0x00FF); WR_STROBE; }
-  #define writeCmd(d)   { writeData_(d); WR_STROBE; }
+  #define writeCmd(d)   { CS_ACTIVE_CD_COMMAND; writeData_(d); WR_STROBE; }
   #define writeData(d)  { writeData_(d); WR_STROBE; }
 
   #if 0 // used TFT cannot be read
