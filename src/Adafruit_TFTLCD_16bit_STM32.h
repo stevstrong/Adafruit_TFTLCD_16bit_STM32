@@ -128,13 +128,19 @@
   #define writeCmd(d)   { CS_ACTIVE_CD_COMMAND; writeData_(d); WR_STROBE; }
   #define writeData(d)  { writeData_(d); WR_STROBE; }
 
+  // configure the pins to input
   #if 0 // used TFT cannot be read
     extern uint8_t read8_(void);
     #define read8(x) ( x = read8_() )
-    #define setReadDir() { TFT_DATA_PORT->regs->CRL = 0x88888888; TFT_DATA_PORT->regs->CRH = 0x88888888; }  // set the bits as input
+    #define setReadDir() { TFT_DATA_PORT->regs->CRL = 0x88888888; TFT_DATA_PORT->regs->CRH = 0x88888888; }
   #endif // used TFT cannot be read
 
-  #define setWriteDir() { TFT_DATA_PORT->regs->CRL = 0x33333333; TFT_DATA_PORT->regs->CRH = 0x33333333; }   // set the bits as output
+  // configure the pins to output
+  #if defined (__STM32F1__)
+    #define setWriteDir() { TFT_DATA_PORT->regs->CRL = 0x33333333; TFT_DATA_PORT->regs->CRH = 0x33333333; }
+  #elif defined (__STM32F4__)
+    #define setWriteDir() { TFT_DATA_PORT->regs->MODER = 0x55555555; }
+  #endif
 
 #endif // USE_FSMC
 
